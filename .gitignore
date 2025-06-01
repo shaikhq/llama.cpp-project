@@ -1,0 +1,5 @@
+# Ignore all .gguf files anywhere
+*.gguf
+
+# Ignore Python virtual environments
+.venv/
