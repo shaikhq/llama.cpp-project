@@ -1,7 +1,10 @@
 
+````markdown
 # Generate Text Embeddings with Llama.cpp on Red Hat Linux (from Source)
 
-Set up `llama-cpp-python` on Red Hat Linux, build it from source, and use a quantized GGUF model to generate text embeddings. This guide uses `uv` for lightweight and reproducible Python environment management.
+Set up `llama-cpp-python` on Red Hat Linux 9.4, build it from source, and use a quantized GGUF model to generate text embeddings. This guide uses [`uv`](https://github.com/astral-sh/uv) for lightweight and reproducible Python environment management.
+
+A sample notebook, [`text-embedding.ipynb`](./text-embedding.ipynb), is included to demonstrate end-to-end usage.
 
 ---
 
@@ -9,17 +12,15 @@ Set up `llama-cpp-python` on Red Hat Linux, build it from source, and use a quan
 
 You will:
 
-- Set up a development environment on RHEL
+- Set up a Python 3.12 development environment on RHEL
 - Build `llama-cpp-python` from source
-- Create a Python virtual environment using `uv`
-- Download a quantized text embedding model (GGUF)
-- Generate embeddings from input text
-
-A sample notebook, [`text-embedding.ipynb`](./text-embedding.ipynb), is included to demonstrate end-to-end usage.
+- Use `uv` to manage your Python virtual environment
+- Download a quantized embedding model (GGUF)
+- Generate embeddings from input text using Llama.cpp
 
 ---
 
-## Setup Workflow
+## Workflow
 
 ```mermaid
 flowchart TD
@@ -31,24 +32,31 @@ flowchart TD
     G --> H[Download GGUF model to models directory]
     H --> I[Run Python code or open text-embedding.ipynb]
     I --> J[Generate text embeddings]
-```
+````
 
 ---
 
 ## System Requirements
 
-- Red Hat Enterprise Linux or compatible
-- Python 3.12
-- Development tools: `cmake`, `gcc`, `make`, `libcurl-devel`, `python3.12-devel`
-- At least 4–6 GB of memory
+* Red Hat Enterprise Linux 9+ or compatible (Rocky, Alma, CentOS Stream)
+* Python 3.12 (plus `python3.12-devel`)
+* Build tools: `gcc`, `cmake`, `make`, `libcurl-devel`
+* At least 4–6 GB of system memory
 
 ---
 
 ## Install System Packages
 
+If needed, enable CodeReady Builder:
+
 ```bash
-sudo dnf install python3.12 cmake gcc-c++ make libcurl-devel
-sudo dnf install python3.12-devel
+sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
+```
+
+Then install required packages:
+
+```bash
+sudo dnf install -y python3.12 python3.12-devel gcc-c++ make cmake libcurl-devel wget
 ```
 
 ---
@@ -73,19 +81,29 @@ source .venv/bin/activate
 
 ## Install Python Packages from Source
 
+The following ensures `llama-cpp-python` builds using your local C++ toolchain (CMake, gcc):
+
 ```bash
 uv pip install llama-cpp-python --no-binary :all:
 uv pip install huggingface-hub
 ```
 
----
-
-## Download the Model
+To set build flags manually, use:
 
 ```bash
-mkdir models
+export LLAMA_CPP_CMAKE_ARGS="-DLLAMA_NATIVE=ON"
+```
+
+---
+
+## Download the GGUF Model
+
+```bash
+mkdir -p models
 cd models
+
 wget https://huggingface.co/phate334/multilingual-e5-large-gguf/resolve/main/multilingual-e5-large-q4_k_m.gguf
+
 ls -lh multilingual-e5-large-q4_k_m.gguf
 ```
 
@@ -95,7 +113,7 @@ Model source: [Hugging Face – multilingual-e5-large-gguf](https://huggingface.
 
 ## Example: Generate Text Embeddings
 
-See [`text-embedding.ipynb`](./text-embedding.ipynb) for a full example. Below is a minimal preview:
+See [`text-embedding.ipynb`](./text-embedding.ipynb) for a complete walkthrough.
 
 ```python
 from llama_cpp import Llama
@@ -115,7 +133,10 @@ print(vector)
 
 ## Notes
 
-- This setup builds `llama-cpp-python` and its C++ backend directly from source.
-- The GGUF model used is optimized for text embedding tasks only.
-- `uv` simplifies dependency isolation and speeds up installation.
+* This setup builds the `llama.cpp` C++ backend directly from source.
+* The `.gguf` model used is optimized for text embedding tasks only.
+* `uv` simplifies reproducible Python environments and speeds up installation.
+* This guide assumes a CPU-only environment. No GPU or CUDA is required.
+
+```
 
