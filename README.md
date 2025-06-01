@@ -1,25 +1,61 @@
-
 # Generate Text Embeddings with Llama.cpp on Red Hat Linux (from Source)
 
-Set up `llama-cpp-python` on Red Hat Linux 9.4, build it from source, and use a quantized GGUF model to generate text embeddings. This guide uses [`uv`](https://github.com/astral-sh/uv) for lightweight and reproducible Python environment management.
-
-A sample notebook, [`text-embedding.ipynb`](./text-embedding.ipynb), is included to demonstrate end-to-end usage.
+This project demonstrates how to set up `llama-cpp-python` on **Red Hat Linux 9.4**, build it from source, and generate vector embeddings using a quantized GGUF model. A Jupyter notebook (`text-embedding.ipynb`) is included to walk you through embedding generation.
 
 ---
 
-## Overview
+## 🔧 Quick Start
 
-You will:
+### Step 1 – Run Setup Script
 
-- Set up a Python 3.12 development environment on RHEL
-- Build `llama-cpp-python` from source
-- Use `uv` to manage your Python virtual environment
-- Download a quantized embedding model (GGUF)
-- Generate embeddings from input text using Llama.cpp
+```bash
+./setup.sh
+````
+
+* Installs system packages
+* Creates Python 3.12 virtual environment using [`uv`](https://github.com/astral-sh/uv)
+* Installs dependencies
+* Downloads IBM’s Granite embedding model (GGUF)
+
+### Step 2 – Configure VS Code Interpreter
+
+```bash
+./configure-vscode.sh
+```
+
+* Sets `.venv` as the default Python interpreter for your VS Code project and notebook
+
+### Step 3 – Run Notebook
+
+Open `text-embedding.ipynb` in VS Code and run the cells to see embeddings in action.
+
+> ✅ You can stop here. The rest of the README explains each step in detail.
 
 ---
 
-## Workflow
+## Notebook Summary
+
+**Notebook:** `text-embedding.ipynb`
+What it does:
+
+* Loads the IBM Granite text embedding model (quantized GGUF format)
+* Converts example text into vector embeddings
+* Displays the first few numbers of each embedding
+
+You can replace the model with any compatible GGUF model from Hugging Face.
+See: [Select and Download a GGUF Model](https://shaikhonai.substack.com/i/162148895/select-and-download-a-gguf-model)
+
+---
+
+## Tested On
+
+* **OS**: Red Hat Enterprise Linux 9.4
+* **Python**: 3.12
+* **Hardware**: CPU-only (no CUDA/GPU required)
+
+---
+
+## Workflow Overview
 
 ```mermaid
 flowchart TD
@@ -31,109 +67,101 @@ flowchart TD
     G --> H[Download GGUF model to models directory]
     H --> I[Run Python code or open text-embedding.ipynb]
     I --> J[Generate text embeddings]
-````
+```
 
 ---
 
-## System Requirements
+## Manual Installation (Step-by-Step)
 
-* Red Hat Enterprise Linux 9+ or compatible (Rocky, Alma, CentOS Stream)
-* Python 3.12 (plus `python3.12-devel`)
-* Build tools: `gcc`, `cmake`, `make`, `libcurl-devel`
-* At least 4–6 GB of system memory
-
----
-
-## Install System Packages
-
-If needed, enable CodeReady Builder:
+### 1. Enable CodeReady Builder (if not already enabled)
 
 ```bash
 sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
 ```
 
-Then install required packages:
+### 2. Install System Packages
 
 ```bash
-sudo dnf install -y python3.12 python3.12-devel gcc-c++ make cmake libcurl-devel wget
+sudo dnf install -y \
+    python3.12 \
+    python3.12-devel \
+    gcc-c++ \
+    make \
+    cmake \
+    libcurl-devel \
+    wget
 ```
 
----
-
-## Install `uv` (Python package manager)
+### 3. Install `uv` Python Package Manager
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv --version
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
----
-
-## Set Up Python Environment
+### 4. Create and Activate Virtual Environment
 
 ```bash
 uv venv --python $(which python3.12)
 source .venv/bin/activate
 ```
 
----
-
-## Install Python Packages from Source
-
-The following ensures `llama-cpp-python` builds using your local C++ toolchain (CMake, gcc):
+### 5. Install Python Packages
 
 ```bash
+export LLAMA_CPP_CMAKE_ARGS="-DLLAMA_NATIVE=ON"
 uv pip install llama-cpp-python --no-binary :all:
 uv pip install huggingface-hub
 ```
 
-To set build flags manually, use:
+If you have a `requirements.txt`, run:
 
 ```bash
-export LLAMA_CPP_CMAKE_ARGS="-DLLAMA_NATIVE=ON"
+uv pip install -r requirements.txt
 ```
 
----
-
-## Download the GGUF Model
+### 6. Download GGUF Embedding Model
 
 ```bash
 mkdir -p models
 cd models
 
-wget https://huggingface.co/phate334/multilingual-e5-large-gguf/resolve/main/multilingual-e5-large-q4_k_m.gguf
+wget -O granite-embedding-30m-english-Q6_K.gguf \
+  https://huggingface.co/lmstudio-community/granite-embedding-30m-english-GGUF/resolve/main/granite-embedding-30m-english-Q6_K.gguf
 
-ls -lh multilingual-e5-large-q4_k_m.gguf
+cd ..
 ```
-
-Model source: [Hugging Face – multilingual-e5-large-gguf](https://huggingface.co/phate334/multilingual-e5-large-gguf)
 
 ---
 
-## Example: Generate Text Embeddings
-
-See [`text-embedding.ipynb`](./text-embedding.ipynb) for a complete walkthrough.
+## Sample Python Usage
 
 ```python
 from llama_cpp import Llama
 
-llm = Llama(
-    model_path="models/multilingual-e5-large-q4_k_m.gguf",
+embedding_model = Llama(
+    model_path="models/granite-embedding-30m-english-Q6_K.gguf",
     embedding=True,
     verbose=False
 )
 
-embedding = llm.create_embedding("Hello, world!")
+text = "Paris is known for the Eiffel Tower."
+embedding = embedding_model.create_embedding(text)
 vector = embedding['data'][0]['embedding']
-print(vector)
+print(vector[:12], "...")
 ```
 
 ---
 
-## Notes
+## Licensing
 
-* This setup builds the `llama.cpp` C++ backend directly from source.
-* The `.gguf` model used is optimized for text embedding tasks only.
-* `uv` simplifies reproducible Python environments and speeds up installation.
-* This guide assumes a CPU-only environment. No GPU or CUDA is required.
+* IBM’s [Granite embedding model](https://huggingface.co/lmstudio-community/granite-embedding-30m-english-GGUF) is publicly available under a permissive license
+* `llama-cpp-python` is MIT-licensed
 
+---
+
+## Resources
+
+* [`llama-cpp-python` GitHub](https://github.com/abetlen/llama-cpp-python)
+* [GGUF Model Format](https://github.com/ggerganov/llama.cpp/blob/master/docs/gguf.md)
+* [GGUF Model Download Guide](https://shaikhonai.substack.com/i/162148895/select-and-download-a-gguf-model)
