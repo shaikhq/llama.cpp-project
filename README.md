@@ -21,12 +21,6 @@ A sample notebook, [`text-embedding.ipynb`](./text-embedding.ipynb), is included
 
 ## Setup Workflow
 
-## Setup Workflow
-
-## Setup Workflow
-
-## Setup Workflow
-
 ```mermaid
 flowchart TD
     B[Install system packages: Python 3.12, gcc, cmake] --> C[Install uv - Python package manager]
