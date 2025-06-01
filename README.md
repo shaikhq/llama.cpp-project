@@ -1,5 +1,4 @@
 
-````markdown
 # Generate Text Embeddings with Llama.cpp on Red Hat Linux (from Source)
 
 Set up `llama-cpp-python` on Red Hat Linux 9.4, build it from source, and use a quantized GGUF model to generate text embeddings. This guide uses [`uv`](https://github.com/astral-sh/uv) for lightweight and reproducible Python environment management.
@@ -137,6 +136,4 @@ print(vector)
 * The `.gguf` model used is optimized for text embedding tasks only.
 * `uv` simplifies reproducible Python environments and speeds up installation.
 * This guide assumes a CPU-only environment. No GPU or CUDA is required.
-
-```
 
