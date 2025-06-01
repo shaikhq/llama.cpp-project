@@ -1,43 +1,48 @@
-# Generate Text Embeddings Using Llama.cpp and GGUF Models on Red Hat Linux
+# Run Local Text Embeddings with Llama.cpp on Red Hat Linux
 
-A beginner-friendly walkthrough for generating text embeddings using a lightweight LLM model, built from source with `llama-cpp-python`. Tested on Red Hat Linux 9.4 with Python 3.12.
+*A lightweight, CPU-only setup to generate vector embeddings from text using GGUF models with Llama.cpp and Python. No GPU or external API required.*
+
+This example walks you through setting up `llama-cpp-python` from source on Red Hat Linux 9.4 using only CPU. You'll run local inference using the `granite-embedding-30m-english` model from IBM, pre-downloaded in GGUF format. You can easily replace it with any other GGUF-compatible embedding model from [Hugging Face](https://huggingface.co).
+
+A sample notebook, [`text-embedding.ipynb`](./text-embedding.ipynb), is included for hands-on exploration.
 
 ---
 
-## 🔧 Quick Start (Shortcut)
+## Quick Start
 
-If you want to skip the detailed setup steps, you can get everything working in just two commands:
+To get started quickly:
 
-1. Run the setup script to install dependencies, create a virtual environment, and download the model:
+1. Run the setup script:
+
    ```bash
    ./setup.sh
-````
-
-2. Run the VS Code configuration script (optional, for VS Code users):
-
-   ```bash
-   ./vscode-config.sh
    ```
 
-3. Open the notebook:
+   This installs dependencies, creates a virtual environment, installs packages, and downloads the model.
+
+2. Configure VS Code to use the new Python interpreter:
 
    ```bash
-   code text-embedding.ipynb
+   ./configure-vscode.sh
    ```
 
-This sets up everything needed to explore the embedding model directly in the notebook.
+   This sets the Python interpreter for the workspace and notebook.
+
+3. Open and run [`text-embedding.ipynb`](./text-embedding.ipynb) to generate embeddings.
+
+You can find more detailed explanations of each step in the sections below.
 
 ---
 
-## What This Does
+## Overview
 
 You will:
 
-* Set up a Python 3.12 development environment on Red Hat Linux
-* Build and install `llama-cpp-python` from source
-* Use `uv` to manage Python packages
-* Download a GGUF text embedding model from Hugging Face
-* Run a notebook that generates and explores text embeddings
+* Set up a Python 3.12 development environment on RHEL
+* Build `llama-cpp-python` from source
+* Use `uv` to manage your Python virtual environment
+* Download a quantized embedding model (GGUF)
+* Generate embeddings from input text using Llama.cpp
 
 ---
 
@@ -59,22 +64,22 @@ flowchart TD
 
 ## System Requirements
 
-* Red Hat Enterprise Linux 9.4 (or compatible, e.g., Rocky/Alma/CentOS Stream)
+* Tested on Red Hat Enterprise Linux 9.4
 * Python 3.12 (plus `python3.12-devel`)
 * Build tools: `gcc`, `cmake`, `make`, `libcurl-devel`
-* 4–6 GB RAM recommended
+* At least 4–6 GB of system memory
 
 ---
 
 ## Install System Packages
 
-Enable CodeReady Builder (if needed):
+If needed, enable CodeReady Builder:
 
 ```bash
 sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
 ```
 
-Install system dependencies:
+Then install required packages:
 
 ```bash
 sudo dnf install -y python3.12 python3.12-devel gcc-c++ make cmake libcurl-devel wget
@@ -82,11 +87,18 @@ sudo dnf install -y python3.12 python3.12-devel gcc-c++ make cmake libcurl-devel
 
 ---
 
-## Install `uv` and Create Virtual Environment
+## Install `uv` (Python package manager)
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-export PATH="$HOME/.local/bin:$PATH"
+uv --version
+```
+
+---
+
+## Set Up Python Environment
+
+```bash
 uv venv --python $(which python3.12)
 source .venv/bin/activate
 ```
@@ -95,13 +107,19 @@ source .venv/bin/activate
 
 ## Install Python Packages from Source
 
+The following ensures `llama-cpp-python` builds using your local C++ toolchain (CMake, gcc):
+
 ```bash
 export LLAMA_CPP_CMAKE_ARGS="-DLLAMA_NATIVE=ON"
 uv pip install llama-cpp-python --no-binary :all:
 uv pip install huggingface-hub
 ```
 
-To install any additional dependencies:
+---
+
+## Install from `requirements.txt` (optional)
+
+If a `requirements.txt` file exists, install dependencies:
 
 ```bash
 uv pip install -r requirements.txt
@@ -109,44 +127,54 @@ uv pip install -r requirements.txt
 
 ---
 
-## Download a GGUF Text Embedding Model
+## Download the GGUF Model
 
 ```bash
 mkdir -p models
 cd models
+
 wget -O granite-embedding-30m-english-Q6_K.gguf \
   https://huggingface.co/lmstudio-community/granite-embedding-30m-english-GGUF/resolve/main/granite-embedding-30m-english-Q6_K.gguf
+
 cd ..
 ```
 
 ---
 
-## Run the Example Notebook
+## Run the Notebook
 
-Open the notebook with VS Code or Jupyter:
+Launch Jupyter and open the notebook:
 
 ```bash
-code text-embedding.ipynb
+source .venv/bin/activate
+jupyter notebook
 ```
 
-This notebook loads the local GGUF model and shows how to convert text into vector embeddings using `llama-cpp-python`.
+Then open and run [`text-embedding.ipynb`](./text-embedding.ipynb).
 
 ---
 
-## Load the Embedding Model from Local File
+## VS Code Integration (Optional)
 
-* Pre-downloaded `text-embedding` model in GGUF format from Hugging Face
-* `granite-embedding-30m-english` by IBM, optimized for lightweight embedding tasks
-* Stored in the `models/` directory (no runtime download needed)
-* Converts text into vector embeddings (numeric representations of meaning)
-* You can swap this with any GGUF-compatible embedding model from Hugging Face
-  ([see step-by-step guide](https://shaikhonai.substack.com/i/162148895/select-and-download-a-gguf-model))
+To set `.venv/bin/python` as the selected interpreter in VS Code:
+
+```bash
+./configure-vscode.sh
+```
+
+This updates `.vscode/settings.json` to use the correct interpreter.
 
 ---
 
 ## Resources
 
-* [Llama.cpp GitHub repository](https://github.com/ggerganov/llama.cpp)
-* [llama-cpp-python documentation](https://llama-cpp-python.readthedocs.io/)
-* [Hugging Face: GGUF-compatible models](https://huggingface.co/models?library=llama-cpp)
-* [Text Embedding with GGUF Models (Step-by-Step)](https://shaikhonai.substack.com/i/162148895/select-and-download-a-gguf-model)`
+* [Hugging Face – GGUF models](https://huggingface.co/models?search=gguf)
+* [Guide: Select and Download a GGUF Model](https://shaikhonai.substack.com/i/162148895/select-and-download-a-gguf-model)
+* [llama-cpp-python GitHub](https://github.com/abetlen/llama-cpp-python)
+* [IBM Granite family of models](https://huggingface.co/ibm)
+
+---
+
+## License
+
+This project uses open-source components. Refer to individual licenses of each dependency for more information.
