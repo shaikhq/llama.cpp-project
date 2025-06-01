@@ -50,14 +50,11 @@ You will:
 
 ```mermaid
 flowchart TD
-    B[Install system packages: Python 3.12, gcc, cmake] --> C[Install uv - Python package manager]
-    C --> D[Create Python virtual environment with uv]
-    D --> E[Activate virtual environment]
-    E --> F[Install llama-cpp-python from source]
-    F --> G[Install huggingface-hub]
-    G --> H[Download GGUF model to models directory]
-    H --> I[Run Python code or open text-embedding.ipynb]
-    I --> J[Generate text embeddings]
+    A[Install system packages] --> B[Install uv package manager]
+    B --> C[Create & activate Python 3.12 environment]
+    C --> D[Install llama-cpp-python and huggingface-hub]
+    D --> E[Download GGUF model]
+    E --> F[Run text-embedding.ipynb to generate embeddings]
 ```
 
 ---
@@ -67,7 +64,6 @@ flowchart TD
 * Tested on Red Hat Enterprise Linux 9.4
 * Python 3.12 (plus `python3.12-devel`)
 * Build tools: `gcc`, `cmake`, `make`, `libcurl-devel`
-* At least 4–6 GB of system memory
 
 ---
 
