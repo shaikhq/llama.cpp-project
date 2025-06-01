@@ -1,61 +1,65 @@
-# Generate Text Embeddings with Llama.cpp on Red Hat Linux (from Source)
+# Run Lightweight Text Embedding Models Locally with Llama.cpp on Red Hat Linux
 
-This project demonstrates how to set up `llama-cpp-python` on **Red Hat Linux 9.4**, build it from source, and generate vector embeddings using a quantized GGUF model. A Jupyter notebook (`text-embedding.ipynb`) is included to walk you through embedding generation.
+**A simple setup to run GGUF embedding models like IBM’s Granite locally using llama.cpp — no GPU required.**
 
----
+Set up `llama-cpp-python` on Red Hat Linux 9.4, build it from source, and use a quantized GGUF model to generate text embeddings. This guide uses [`uv`](https://github.com/astral-sh/uv) for lightweight and reproducible Python environment management.
 
-## 🔧 Quick Start
-
-### Step 1 – Run Setup Script
-
-```bash
-./setup.sh
-````
-
-* Installs system packages
-* Creates Python 3.12 virtual environment using [`uv`](https://github.com/astral-sh/uv)
-* Installs dependencies
-* Downloads IBM’s Granite embedding model (GGUF)
-
-### Step 2 – Configure VS Code Interpreter
-
-```bash
-./configure-vscode.sh
-```
-
-* Sets `.venv` as the default Python interpreter for your VS Code project and notebook
-
-### Step 3 – Run Notebook
-
-Open `text-embedding.ipynb` in VS Code and run the cells to see embeddings in action.
-
-> ✅ You can stop here. The rest of the README explains each step in detail.
+A sample notebook, [`text-embedding.ipynb`](./text-embedding.ipynb), is included to demonstrate end-to-end usage.
 
 ---
 
-## Notebook Summary
+## Quick Start (Recommended)
 
-**Notebook:** `text-embedding.ipynb`
-What it does:
+If you just want to get started quickly:
 
-* Loads the IBM Granite text embedding model (quantized GGUF format)
-* Converts example text into vector embeddings
-* Displays the first few numbers of each embedding
+1. **Run the setup script**
 
-You can replace the model with any compatible GGUF model from Hugging Face.
-See: [Select and Download a GGUF Model](https://shaikhonai.substack.com/i/162148895/select-and-download-a-gguf-model)
+   ```bash
+   ./setup.sh
+   ```
+
+   * Installs system packages and Python dependencies
+   * Creates a virtual environment with `uv`
+   * Builds and installs `llama-cpp-python` from source
+   * Downloads the embedding model
+
+2. **Run the VS Code config script** (optional but recommended if using VS Code)
+
+   ```bash
+   ./vscode-config.sh
+   ```
+
+   * Sets the current `.venv` as the Python interpreter for VS Code
+   * Ensures the notebook uses the correct interpreter
+
+3. **Open and run the notebook**
+
+   ```bash
+   text-embedding.ipynb
+   ```
+
+   * Demonstrates how to load a local GGUF model
+   * Shows how to generate embeddings from sample text
+
+> That’s it. Everything should work out of the box.
+
+For a deeper understanding, continue with the step-by-step instructions below.
 
 ---
 
-## Tested On
+## Overview
 
-* **OS**: Red Hat Enterprise Linux 9.4
-* **Python**: 3.12
-* **Hardware**: CPU-only (no CUDA/GPU required)
+You will:
+
+* Set up a Python 3.12 development environment on RHEL
+* Build `llama-cpp-python` from source
+* Use `uv` to manage your Python virtual environment
+* Download a quantized embedding model (GGUF)
+* Generate embeddings from input text using Llama.cpp
 
 ---
 
-## Workflow Overview
+## Workflow
 
 ```mermaid
 flowchart TD
@@ -71,42 +75,54 @@ flowchart TD
 
 ---
 
-## Manual Installation (Step-by-Step)
+## System Requirements
 
-### 1. Enable CodeReady Builder (if not already enabled)
+* Red Hat Enterprise Linux 9+ or compatible (Rocky, Alma, CentOS Stream)
+* Python 3.12 (plus `python3.12-devel`)
+* Build tools: `gcc`, `cmake`, `make`, `libcurl-devel`
+* At least 4–6 GB of system memory
+
+Tested on Red Hat Linux 9.4 with Python 3.12.
+
+---
+
+## Install System Packages
+
+If needed, enable CodeReady Builder:
 
 ```bash
 sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
 ```
 
-### 2. Install System Packages
+Then install required packages:
 
 ```bash
-sudo dnf install -y \
-    python3.12 \
-    python3.12-devel \
-    gcc-c++ \
-    make \
-    cmake \
-    libcurl-devel \
-    wget
+sudo dnf install -y python3.12 python3.12-devel gcc-c++ make cmake libcurl-devel wget
 ```
 
-### 3. Install `uv` Python Package Manager
+---
+
+## Install `uv` (Python package manager)
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-export PATH="$HOME/.local/bin:$PATH"
+uv --version
 ```
 
-### 4. Create and Activate Virtual Environment
+---
+
+## Set Up Python Environment
 
 ```bash
 uv venv --python $(which python3.12)
 source .venv/bin/activate
 ```
 
-### 5. Install Python Packages
+---
+
+## Install Python Packages from Source
+
+The following ensures `llama-cpp-python` builds using your local C++ toolchain (CMake, gcc):
 
 ```bash
 export LLAMA_CPP_CMAKE_ARGS="-DLLAMA_NATIVE=ON"
@@ -114,13 +130,9 @@ uv pip install llama-cpp-python --no-binary :all:
 uv pip install huggingface-hub
 ```
 
-If you have a `requirements.txt`, run:
+---
 
-```bash
-uv pip install -r requirements.txt
-```
-
-### 6. Download GGUF Embedding Model
+## Download the GGUF Model
 
 ```bash
 mkdir -p models
@@ -132,36 +144,34 @@ wget -O granite-embedding-30m-english-Q6_K.gguf \
 cd ..
 ```
 
+Model source: [Hugging Face – granite-embedding-30m-english](https://huggingface.co/lmstudio-community/granite-embedding-30m-english-GGUF)
+
 ---
 
-## Sample Python Usage
+## Example: Generate Text Embeddings
+
+See [`text-embedding.ipynb`](./text-embedding.ipynb) for a complete walkthrough.
 
 ```python
 from llama_cpp import Llama
 
-embedding_model = Llama(
+llm = Llama(
     model_path="models/granite-embedding-30m-english-Q6_K.gguf",
     embedding=True,
     verbose=False
 )
 
-text = "Paris is known for the Eiffel Tower."
-embedding = embedding_model.create_embedding(text)
+embedding = llm.create_embedding("Hello, world!")
 vector = embedding['data'][0]['embedding']
 print(vector[:12], "...")
 ```
 
 ---
 
-## Licensing
+## Notes
 
-* IBM’s [Granite embedding model](https://huggingface.co/lmstudio-community/granite-embedding-30m-english-GGUF) is publicly available under a permissive license
-* `llama-cpp-python` is MIT-licensed
-
----
-
-## Resources
-
-* [`llama-cpp-python` GitHub](https://github.com/abetlen/llama-cpp-python)
-* [GGUF Model Format](https://github.com/ggerganov/llama.cpp/blob/master/docs/gguf.md)
-* [GGUF Model Download Guide](https://shaikhonai.substack.com/i/162148895/select-and-download-a-gguf-model)
+* This setup builds the `llama.cpp` C++ backend directly from source.
+* The `.gguf` model used is optimized for text embedding tasks only.
+* You can replace the model with any GGUF-compatible embedding model from Hugging Face.
+* `uv` simplifies reproducible Python environments and speeds up installation.
+* This guide assumes a CPU-only environment. No GPU or CUDA is required.
