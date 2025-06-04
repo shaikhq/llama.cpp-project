@@ -15,7 +15,7 @@ To get started quickly:
 1. Run the setup script:
 
    ```bash
-   ./setup.sh
+   ./1-setup.sh
    ```
 
    This installs dependencies, creates a virtual environment, installs packages, and downloads the model.
@@ -23,7 +23,7 @@ To get started quickly:
 2. Configure VS Code to use the new Python interpreter:
 
    ```bash
-   ./configure-vscode.sh
+   ./2-configure-vscode.sh
    ```
 
    This sets the Python interpreter for the workspace and notebook.
